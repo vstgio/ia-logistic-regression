@@ -18,8 +18,8 @@ def hypothesis(x, thetas):
 def cost(x, y, thetas):
 	return (1/len(y)) * np.sum((-y * np.log(hypothesis(x, thetas))) - (1 - y) * np.log(1 - hypothesis(x, thetas)))
 
-def gradient():
-	return 0
+def gradient(x, y, thetas):
+	return (1/len(y)) * np.dot(x.T, (hypothesis(x, thetas)-y))
 
 #------------------------#
 
