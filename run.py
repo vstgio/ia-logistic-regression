@@ -30,25 +30,34 @@ def draw_points(values, rejected, admitted):
 	plt.ylabel("EXAM 02 SCORE",  labelpad=6, fontsize=8)
 	plt.legend(loc='lower right', bbox_to_anchor=(0, 1.02, 1, 0.2), ncol=2)
 
-def draw_decision_line(results, x, y):
+def draw_decision_line(best_thetas, x, y):
 	x1_min, x1_max = np.min(x[:, 1]), np.max(x[:, 1])
 	x2_min, x2_max = np.min(x[:, 2]), np.max(x[:, 2])
 	xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max), np.linspace(x2_min, x2_max))
 
-	h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)), xx1.ravel(), xx2.ravel()].dot(results))
+	h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)), xx1.ravel(), xx2.ravel()].dot(best_thetas))
 	h = h.reshape(xx1.shape)
 
 	plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
+
+def accuracy(x, y, best_thetas, boundary_value):
+	results = hypothesis(best_thetas.reshape(3,1), x)
+	results = (results > boundary_value).astype(int)
+	return np.mean(results == y) * 100
 
 #------------------------#
 
 values = pandas.read_csv("sample-data/ex2data1.csv", header=None).values
 x, y, rejected, admitted = separate_values(values)
-thetas = np.zeros((x.shape[1], 1))
+initial_thetas = np.zeros((x.shape[1], 1))
 
-results = scipy.optimize.fmin_tnc(func=cost, x0=thetas, fprime=gradient, args=(x, y.flatten()))
+best_thetas = scipy.optimize.fmin_tnc(func=cost, x0=initial_thetas, fprime=gradient, args=(x, y.flatten()))
 
 draw_points(values, rejected, admitted)
-draw_decision_line(results[0], x, y)
+draw_decision_line(best_thetas[0], x, y)
+
+print("")
+print("::: Accuracy of the model: {}%".format(accuracy(x, y, best_thetas[0], 0.5)))
+print("")
 
 plt.show()
