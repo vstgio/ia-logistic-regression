@@ -5,16 +5,27 @@ import scipy.optimize
 from sklearn.preprocessing import PolynomialFeatures
 
 def separate_values(values):
-	x = values[:, :-1]
-	y = values[:, -1]
-	y = y.astype(int)
-	return x, y, np.where(values[:, 2] == 0), np.where(values[:, 2] == 1)
+    x = values[:, :-1]
+    y = values[:, -1]
+    y = y.reshape(len(y), 1)
+    y = y.astype(int)
+    return x, y, np.where(values[:, 2] == 0), np.where(values[:, 2] == 1)
 
 def sigmoid(value):
 	return 1 / (1 + np.exp(-value))
 
 def hypothesis(thetas, x):
 	return sigmoid(np.dot(x, thetas))
+
+def cost(thetas, x, y, lambda_value):
+    cost = (1/len(y)) * np.sum((-y * np.log(hypothesis(thetas, x))) - (1 - y) * np.log(1 - hypothesis(thetas, x)))
+    regularization = (lambda_value/(2*len(y))) * (np.dot(thetas[1:].T, thetas[1:]))
+    return (cost + regularization)
+
+def gradient(thetas, x, y, lambda_value):
+    grad = (1/len(y)) * (np.dot(x.T, (hypothesis(thetas, x) - y)))
+    grad[1:] = grad[1:] + (lambda_value / len(y)) * thetas[1:]
+    return grad
 
 def draw_points(values, rejected, admitted):
 	plt.scatter(values[rejected, 0], values[rejected, 1], marker='.', label="APPROVED")
@@ -28,6 +39,8 @@ x, y, rejected, admitted = separate_values(values)
 
 p_features = PolynomialFeatures(6)
 p_features = p_features.fit_transform(x)
+
+initial_thetas = np.zeros((p_features.shape[1], 1))
 
 draw_points(values, rejected, admitted)
 plt.show()
